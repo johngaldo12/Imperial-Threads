@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useCart } from "@/hooks/use-cart";
 import { ShoppingBag } from "lucide-react";
+import logo from "@assets/logo_1781537346154.jpg";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -13,8 +14,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <nav className="flex items-center gap-6">
-            <Link href="/" className="text-2xl font-serif tracking-tighter uppercase font-bold text-foreground transition-opacity hover:opacity-80">
-              IMPERIAL
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+              <img src={logo} alt="Imperial" className="h-10 w-10 object-contain" />
             </Link>
             <div className="hidden md:flex items-center gap-6 ml-6 text-sm font-mono tracking-wider">
               <Link href="/shop" className={`transition-colors hover:text-foreground ${location === '/shop' ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -44,8 +45,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
-              <Link href="/" className="text-2xl font-serif tracking-tighter uppercase font-bold text-foreground">
-                IMPERIAL
+              <Link href="/" className="inline-flex items-center gap-3 transition-opacity hover:opacity-80">
+                <img src={logo} alt="Imperial" className="h-12 w-12 object-contain" />
+                <span className="text-2xl font-serif tracking-tighter uppercase font-bold text-foreground">Imperial</span>
               </Link>
               <p className="mt-4 text-sm text-muted-foreground max-w-sm font-mono">
                 Premium streetwear for those who dress with intention. The silence is deliberate.
