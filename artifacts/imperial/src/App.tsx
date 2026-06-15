@@ -9,6 +9,7 @@ import Shop from "@/pages/shop";
 import Product from "@/pages/product";
 import Cart from "@/pages/cart";
 import Contact from "@/pages/contact";
+import Track from "@/pages/track";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/products/:handle" component={Product} />
       <Route path="/cart" component={Cart} />
       <Route path="/contact" component={Contact} />
+      <Route path="/track" component={Track} />
       <Route component={NotFound} />
     </Switch>
   );

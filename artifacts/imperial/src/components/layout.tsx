@@ -28,6 +28,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link href="/contact" className={`transition-colors hover:text-foreground ${location === '/contact' ? 'text-foreground' : 'text-muted-foreground'}`}>
                 CONTACT
               </Link>
+              <Link href="/track" className={`transition-colors hover:text-foreground ${location === '/track' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                TRACK ORDER
+              </Link>
             </div>
           </nav>
           
