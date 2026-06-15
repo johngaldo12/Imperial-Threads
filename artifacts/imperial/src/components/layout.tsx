@@ -1,0 +1,79 @@
+import { Link, useLocation } from "wouter";
+import { useCart } from "@/hooks/use-cart";
+import { ShoppingBag } from "lucide-react";
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const { cart } = useCart();
+  
+  const totalItems = cart?.totalQuantity || 0;
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans selection:bg-primary selection:text-primary-foreground">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <nav className="flex items-center gap-6">
+            <Link href="/" className="text-2xl font-serif tracking-tighter uppercase font-bold text-foreground transition-opacity hover:opacity-80">
+              IMPERIAL
+            </Link>
+            <div className="hidden md:flex items-center gap-6 ml-6 text-sm font-mono tracking-wider">
+              <Link href="/shop" className={`transition-colors hover:text-foreground ${location === '/shop' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                SHOP
+              </Link>
+            </div>
+          </nav>
+          
+          <div className="flex items-center gap-4">
+            <Link href="/cart" className="relative group flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-muted">
+              <ShoppingBag className="w-5 h-5 text-foreground group-hover:text-primary transition-colors" />
+              {totalItems > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </header>
+      
+      <main className="flex-1 flex flex-col">
+        {children}
+      </main>
+      
+      <footer className="border-t border-border mt-auto">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1 md:col-span-2">
+              <Link href="/" className="text-2xl font-serif tracking-tighter uppercase font-bold text-foreground">
+                IMPERIAL
+              </Link>
+              <p className="mt-4 text-sm text-muted-foreground max-w-sm font-mono">
+                Premium streetwear for those who dress with intention. The silence is deliberate.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-mono text-sm font-bold uppercase tracking-widest mb-4">Shop</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/shop" className="hover:text-foreground transition-colors">All Products</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-mono text-sm font-bold uppercase tracking-widest mb-4">Connect</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Instagram</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Twitter</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 pt-8 border-t border-border text-xs text-muted-foreground font-mono flex flex-col md:flex-row justify-between items-center">
+            <p>&copy; {new Date().getFullYear()} Imperial. All rights reserved.</p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+              <a href="#" className="hover:text-foreground">Privacy</a>
+              <a href="#" className="hover:text-foreground">Terms</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

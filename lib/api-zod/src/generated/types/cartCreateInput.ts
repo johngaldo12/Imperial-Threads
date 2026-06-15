@@ -5,7 +5,8 @@
  * Imperial clothing store API
  * OpenAPI spec version: 0.1.0
  */
+import type { CartLineInput } from './cartLineInput';
 
-export interface HealthStatus {
-  status: string;
+export interface CartCreateInput {
+  lines?: CartLineInput[];
 }

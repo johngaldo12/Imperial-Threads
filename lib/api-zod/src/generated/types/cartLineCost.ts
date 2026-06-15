@@ -5,7 +5,8 @@
  * Imperial clothing store API
  * OpenAPI spec version: 0.1.0
  */
+import type { Money } from './money';
 
-export interface HealthStatus {
-  status: string;
+export interface CartLineCost {
+  totalAmount: Money;
 }
