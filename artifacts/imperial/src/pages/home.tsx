@@ -2,11 +2,15 @@ import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { useListProducts } from "@workspace/api-client-react";
 import { ProductCard } from "@/components/product-card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
+import { STATIC_PRODUCTS } from "@/data/static-products";
 
 export default function Home() {
-  const { data: products, isLoading } = useListProducts({ first: 4 });
+  const { data: apiProducts } = useListProducts({ first: 4, query: { retry: false } });
+
+  const featured = (apiProducts && apiProducts.length > 0)
+    ? apiProducts.slice(0, 4)
+    : STATIC_PRODUCTS.slice(0, 4);
 
   return (
     <Layout>
@@ -47,23 +51,11 @@ export default function Home() {
             </Link>
           </div>
           
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex flex-col gap-4">
-                  <Skeleton className="w-full aspect-[3/4] rounded-none" />
-                  <Skeleton className="w-2/3 h-6 rounded-none" />
-                  <Skeleton className="w-1/3 h-4 rounded-none" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products?.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featured.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
           
           <div className="mt-12 text-center md:hidden">
             <Link href="/shop" className="inline-flex items-center justify-center px-6 py-3 text-xs font-mono tracking-widest font-bold uppercase border border-border text-foreground hover:bg-muted transition-colors">

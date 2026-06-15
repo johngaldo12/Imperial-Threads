@@ -1,14 +1,16 @@
 import { Layout } from "@/components/layout";
 import { useListProducts } from "@workspace/api-client-react";
 import { ProductCard } from "@/components/product-card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { STATIC_PRODUCTS } from "@/data/static-products";
 
 export default function Shop() {
-  const { data: products, isLoading } = useListProducts();
+  const { data: apiProducts } = useListProducts({ query: { retry: false } });
   const [filter, setFilter] = useState<"All" | "Shirts" | "Shorts">("All");
 
-  const filteredProducts = products?.filter(p => {
+  const products = (apiProducts && apiProducts.length > 0) ? apiProducts : STATIC_PRODUCTS;
+
+  const filteredProducts = products.filter(p => {
     if (filter === "All") return true;
     if (filter === "Shirts") return p.productType?.toLowerCase().includes("shirt");
     if (filter === "Shorts") return p.productType?.toLowerCase().includes("short");
@@ -30,7 +32,7 @@ export default function Shop() {
             {["All", "Shirts", "Shorts"].map((f) => (
               <button
                 key={f}
-                onClick={() => setFilter(f as any)}
+                onClick={() => setFilter(f as "All" | "Shirts" | "Shorts")}
                 className={`pb-1 border-b-2 transition-colors ${filter === f ? "border-primary text-foreground font-bold" : "border-transparent text-muted-foreground hover:text-foreground"}`}
               >
                 {f}
@@ -38,21 +40,11 @@ export default function Shop() {
             ))}
           </div>
           <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            {isLoading ? "Loading..." : `${filteredProducts?.length || 0} Products`}
+            {`${filteredProducts.length} Products`}
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="flex flex-col gap-4">
-                <Skeleton className="w-full aspect-[3/4] rounded-none bg-muted/50" />
-                <Skeleton className="w-3/4 h-6 rounded-none bg-muted/50" />
-                <Skeleton className="w-1/4 h-4 rounded-none bg-muted/50" />
-              </div>
-            ))}
-          </div>
-        ) : filteredProducts?.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <div className="py-24 text-center border border-dashed border-border bg-card/50">
             <h3 className="font-serif text-2xl font-bold">No products found</h3>
             <p className="font-mono text-muted-foreground mt-2 text-sm uppercase tracking-widest">Try a different filter.</p>
