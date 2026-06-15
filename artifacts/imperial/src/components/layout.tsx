@@ -1,16 +1,20 @@
 import { Link, useLocation } from "wouter";
 import { useCart } from "@/hooks/use-cart";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, User } from "lucide-react";
 import logo from "@assets/logo_1781537346154.jpg";
+import { useState } from "react";
+import { AuthModal } from "@/components/auth-modal";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { cart } = useCart();
+  const [authOpen, setAuthOpen] = useState(false);
   
   const totalItems = cart?.totalQuantity || 0;
 
   return (
     <div className="min-h-screen flex flex-col font-sans selection:bg-primary selection:text-primary-foreground">
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <nav className="flex items-center gap-6">
@@ -21,10 +25,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link href="/shop" className={`transition-colors hover:text-foreground ${location === '/shop' ? 'text-foreground' : 'text-muted-foreground'}`}>
                 SHOP
               </Link>
+              <Link href="/contact" className={`transition-colors hover:text-foreground ${location === '/contact' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                CONTACT
+              </Link>
             </div>
           </nav>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setAuthOpen(true)}
+              className="hidden md:flex items-center gap-2 px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest border border-border text-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <User className="w-3.5 h-3.5" />
+              Sign In
+            </button>
             <Link href="/cart" className="relative group flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-muted">
               <ShoppingBag className="w-5 h-5 text-foreground group-hover:text-primary transition-colors" />
               {totalItems > 0 && (

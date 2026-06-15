@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import Product from "@/pages/product";
 import Cart from "@/pages/cart";
+import Contact from "@/pages/contact";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/shop" component={Shop} />
       <Route path="/products/:handle" component={Product} />
       <Route path="/cart" component={Cart} />
+      <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>
   );
