@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { STATIC_PRODUCTS } from "@/data/static-products";
+import { useAuth } from "@/contexts/auth-context";
 
 export interface CartItem {
   productId: string;
@@ -24,19 +25,23 @@ export interface Cart {
   };
 }
 
-const CART_KEY = "imperial-local-cart";
+const BASE_CART_KEY = "imperial-local-cart";
 
-function loadCart(): CartItem[] {
+function getCartKey(userId: string | undefined): string {
+  return userId ? `${BASE_CART_KEY}:${userId}` : `${BASE_CART_KEY}:guest`;
+}
+
+function loadCart(userId: string | undefined): CartItem[] {
   try {
-    const raw = localStorage.getItem(CART_KEY);
+    const raw = localStorage.getItem(getCartKey(userId));
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-function saveCart(items: CartItem[]) {
-  localStorage.setItem(CART_KEY, JSON.stringify(items));
+function saveCart(userId: string | undefined, items: CartItem[]) {
+  localStorage.setItem(getCartKey(userId), JSON.stringify(items));
 }
 
 function buildCart(items: CartItem[]): Cart {
@@ -55,15 +60,22 @@ function buildCart(items: CartItem[]): Cart {
 }
 
 export function useLocalCart() {
-  const [items, setItems] = useState<CartItem[]>(loadCart);
+  const { user } = useAuth();
+  const userId = user?.id?.toString();
+  const [items, setItems] = useState<CartItem[]>(() => loadCart(userId));
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const cart = buildCart(items);
 
   useEffect(() => {
-    saveCart(items);
-  }, [items]);
+    const freshItems = loadCart(userId);
+    setItems(freshItems);
+  }, [userId]);
+
+  useEffect(() => {
+    saveCart(userId, items);
+  }, [userId, items]);
 
   const addToCart = useCallback(
     (variantId: string, quantity: number = 1) => {

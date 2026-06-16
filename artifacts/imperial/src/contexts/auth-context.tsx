@@ -28,7 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (meData) {
-      setUser(meData as unknown as User);
+      const raw = meData as unknown as any;
+      const user = raw.user ?? raw;
+      setUser(user);
     }
     setIsLoading(false);
   }, [meData]);
