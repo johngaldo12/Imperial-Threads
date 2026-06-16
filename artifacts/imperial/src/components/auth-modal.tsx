@@ -1,30 +1,38 @@
 import { useState } from "react";
 import { X, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 interface AuthModalProps {
   onClose: () => void;
 }
 
 export function AuthModal({ onClose }: AuthModalProps) {
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  const handleFacebook = () => {
-    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
-    if (!appId) {
-      alert("Facebook login is being set up. Try email sign-in for now.");
-      return;
-    }
-    const redirect = encodeURIComponent(window.location.origin);
-    const scope = encodeURIComponent("public_profile,email");
-    window.location.href = `https://www.facebook.com/dialog/oauth?client_id=${appId}&redirect_uri=${redirect}&scope=${scope}&response_type=token`;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setLoading(true);
+    try {
+      if (mode === "register") {
+        await register(form.name, form.email, form.password);
+      } else {
+        await login(form.email, form.password);
+      }
+      setSuccess(true);
+      setTimeout(onClose, 1200);
+    } catch (err: any) {
+      const msg = err?.data?.error || err?.message || "Something went wrong";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +50,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
         </div>
 
         <div className="p-6">
-          {submitted ? (
+          {success ? (
             <div className="py-8 text-center">
               <User className="w-10 h-10 mx-auto mb-4 text-primary" />
               <h3 className="font-serif text-xl font-bold">
@@ -51,30 +59,14 @@ export function AuthModal({ onClose }: AuthModalProps) {
               <p className="font-mono text-sm text-muted-foreground mt-2 uppercase tracking-widest">
                 {mode === "register" ? "You're now part of the Imperial family." : "You've been signed in."}
               </p>
-              <button
-                onClick={onClose}
-                className="mt-6 w-full h-12 bg-primary text-primary-foreground font-mono text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors"
-              >
-                Continue Shopping
-              </button>
             </div>
           ) : (
             <>
-              <button
-                onClick={handleFacebook}
-                className="w-full h-12 flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] text-white font-mono text-sm font-bold uppercase tracking-widest transition-colors mb-5"
-              >
-                <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                Continue with Facebook
-              </button>
-
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex-1 h-px bg-border" />
-                <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">or</span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
+              {error && (
+                <div className="mb-4 px-3 py-2 border border-red-400/30 bg-red-400/10 text-red-400 font-mono text-xs uppercase tracking-wider">
+                  {error}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {mode === "register" && (
@@ -109,6 +101,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
                     required
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
+                    minLength={6}
                     value={form.password}
                     onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                     className="w-full bg-card border border-border pl-11 pr-12 py-3 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
@@ -124,15 +117,16 @@ export function AuthModal({ onClose }: AuthModalProps) {
 
                 <button
                   type="submit"
-                  className="w-full h-12 bg-primary text-primary-foreground font-mono text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors mt-1"
+                  disabled={loading}
+                  className="w-full h-12 bg-primary text-primary-foreground font-mono text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors mt-1 disabled:opacity-50"
                 >
-                  {mode === "login" ? "Sign In" : "Create Account"}
+                  {loading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
                 </button>
               </form>
 
               <div className="mt-5 text-center">
                 <button
-                  onClick={() => setMode(m => m === "login" ? "register" : "login")}
+                  onClick={() => { setMode(m => m === "login" ? "register" : "login"); setError(""); }}
                   className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest underline underline-offset-4"
                 >
                   {mode === "login" ? "No account? Register" : "Already have one? Sign in"}

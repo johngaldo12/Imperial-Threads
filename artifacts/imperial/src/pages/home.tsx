@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { STATIC_PRODUCTS } from "@/data/static-products";
 
 export default function Home() {
-  const { data: apiProducts } = useListProducts({ first: 4, query: { retry: false } });
+  const { data: apiProducts } = useListProducts({ first: 4 }, { query: { retry: false, queryKey: ["products", "home"] } });
 
   const featured = (apiProducts && apiProducts.length > 0)
     ? apiProducts.slice(0, 4)

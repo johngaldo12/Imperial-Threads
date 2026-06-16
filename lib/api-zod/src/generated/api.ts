@@ -492,3 +492,109 @@ export const RemoveCartLineResponse = zod.object({
 })
 
 
+/**
+ * @summary Register a new user
+ */
+export const registerBodyPasswordMin = 6;
+
+
+
+export const RegisterBody = zod.object({
+  "name": zod.string(),
+  "email": zod.string().email(),
+  "password": zod.string().min(registerBodyPasswordMin)
+})
+
+
+/**
+ * @summary User login
+ */
+export const LoginBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "user": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+}),
+  "token": zod.string()
+})
+
+
+/**
+ * @summary Get current user
+ */
+export const GetMeResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+})
+
+
+/**
+ * @summary Create an order
+ */
+export const createOrderBodyCurrencyDefault = `PHP`;
+
+export const CreateOrderBody = zod.object({
+  "customerName": zod.string(),
+  "customerEmail": zod.string().email(),
+  "shippingAddress": zod.string(),
+  "totalAmount": zod.number(),
+  "items": zod.array(zod.object({
+  "name": zod.string().optional(),
+  "variant": zod.string().optional(),
+  "quantity": zod.number().optional(),
+  "price": zod.number().optional()
+})),
+  "currency": zod.string().default(createOrderBodyCurrencyDefault)
+})
+
+
+/**
+ * @summary List my orders
+ */
+export const ListOrdersResponseItem = zod.object({
+  "orderNumber": zod.string(),
+  "status": zod.string(),
+  "totalAmount": zod.number(),
+  "currency": zod.string(),
+  "createdAt": zod.coerce.date().optional(),
+  "items": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "timeline": zod.array(zod.object({
+
+}).passthrough()).optional()
+})
+export const ListOrdersResponse = zod.array(ListOrdersResponseItem)
+
+
+/**
+ * @summary Get order by number
+ */
+export const GetOrderParams = zod.object({
+  "orderNumber": zod.coerce.string()
+})
+
+export const GetOrderResponse = zod.object({
+  "orderNumber": zod.string(),
+  "status": zod.string(),
+  "totalAmount": zod.number(),
+  "currency": zod.string(),
+  "customerName": zod.string().optional(),
+  "customerEmail": zod.string().optional(),
+  "shippingAddress": zod.string().optional(),
+  "createdAt": zod.coerce.date().optional(),
+  "items": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "timeline": zod.array(zod.object({
+
+}).passthrough()).optional()
+})
+
+

@@ -16,7 +16,7 @@ export function useCart() {
   }, []);
 
   const cartQuery = useGetCart(cartId || "", {
-    query: { enabled: !!cartId }
+    query: { enabled: !!cartId, queryKey: ["cart", cartId] }
   });
 
   const createCart = useCreateCart();

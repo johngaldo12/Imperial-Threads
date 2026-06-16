@@ -5,6 +5,76 @@
  * Imperial clothing store API
  * OpenAPI spec version: 0.1.0
  */
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  /** @minLength 6 */
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export type CreateOrderRequestItemsItem = {
+  name?: string;
+  variant?: string;
+  quantity?: number;
+  price?: number;
+};
+
+export interface CreateOrderRequest {
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  totalAmount: number;
+  items: CreateOrderRequestItemsItem[];
+  currency?: string;
+}
+
+export type OrderSummaryItemsItem = { [key: string]: unknown };
+
+export type OrderSummaryTimelineItem = { [key: string]: unknown };
+
+export interface OrderSummary {
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  currency: string;
+  createdAt?: string;
+  items?: OrderSummaryItemsItem[];
+  timeline?: OrderSummaryTimelineItem[];
+}
+
+export type OrderDetailsItemsItem = { [key: string]: unknown };
+
+export type OrderDetailsTimelineItem = { [key: string]: unknown };
+
+export interface OrderDetails {
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  currency: string;
+  customerName?: string;
+  customerEmail?: string;
+  shippingAddress?: string;
+  createdAt?: string;
+  items?: OrderDetailsItemsItem[];
+  timeline?: OrderDetailsTimelineItem[];
+}
+
 export interface HealthStatus {
   status: string;
 }

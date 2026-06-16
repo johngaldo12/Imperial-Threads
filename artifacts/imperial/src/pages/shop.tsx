@@ -5,7 +5,7 @@ import { useState } from "react";
 import { STATIC_PRODUCTS } from "@/data/static-products";
 
 export default function Shop() {
-  const { data: apiProducts } = useListProducts({ query: { retry: false } });
+  const { data: apiProducts } = useListProducts(undefined, { query: { retry: false, queryKey: ["products"] } });
   const [filter, setFilter] = useState<"All" | "Shirts" | "Shorts">("All");
 
   const products = (apiProducts && apiProducts.length > 0) ? apiProducts : STATIC_PRODUCTS;

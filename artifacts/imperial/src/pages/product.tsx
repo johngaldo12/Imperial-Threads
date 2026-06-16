@@ -10,7 +10,7 @@ import { STATIC_PRODUCTS } from "@/data/static-products";
 export default function Product() {
   const { handle } = useParams<{ handle: string }>();
   const { data: apiProduct, isLoading } = useGetProduct(handle || "", {
-    query: { enabled: !!handle, retry: false }
+    query: { enabled: !!handle, retry: false, queryKey: ["product", handle] }
   });
   
   const { addToCart, isLoading: isCartLoading } = useCart();

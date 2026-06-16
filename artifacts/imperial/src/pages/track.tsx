@@ -1,8 +1,9 @@
 import { Layout } from "@/components/layout";
 import { useState } from "react";
+import { useGetOrder } from "@workspace/api-client-react";
 import { Search, Package, Truck, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
-type OrderStatus = "processing" | "shipped" | "out_for_delivery" | "delivered" | "not_found";
+type OrderStatus = "processing" | "shipped" | "out_for_delivery" | "delivered" | "cancelled" | "not_found";
 
 interface TrackingStep {
   label: string;
@@ -12,76 +13,58 @@ interface TrackingStep {
   active: boolean;
 }
 
-const DEMO_ORDERS: Record<string, { status: OrderStatus; item: string; steps: TrackingStep[] }> = {
-  "IMP-00123": {
-    status: "shipped",
-    item: "Imperial Anubis Tee — Black (M)",
-    steps: [
-      { label: "Order Placed", description: "Your order was received and confirmed.", date: "Jun 10, 2026", done: true, active: false },
-      { label: "Processing", description: "Your item is being prepared and packed.", date: "Jun 11, 2026", done: true, active: false },
-      { label: "Shipped", description: "Your order is on its way.", date: "Jun 13, 2026", done: true, active: true },
-      { label: "Out for Delivery", description: "Package is with the delivery courier.", date: "—", done: false, active: false },
-      { label: "Delivered", description: "Package delivered to your address.", date: "—", done: false, active: false },
-    ],
-  },
-  "IMP-00456": {
-    status: "delivered",
-    item: "Imperial Anubis Shorts — Cream (L)",
-    steps: [
-      { label: "Order Placed", description: "Your order was received and confirmed.", date: "Jun 5, 2026", done: true, active: false },
-      { label: "Processing", description: "Your item is being prepared and packed.", date: "Jun 6, 2026", done: true, active: false },
-      { label: "Shipped", description: "Your order is on its way.", date: "Jun 8, 2026", done: true, active: false },
-      { label: "Out for Delivery", description: "Package is with the delivery courier.", date: "Jun 9, 2026", done: true, active: false },
-      { label: "Delivered", description: "Package delivered to your address.", date: "Jun 9, 2026", done: true, active: true },
-    ],
-  },
-};
-
-const STATUS_COLORS: Record<OrderStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
   processing: "text-yellow-400",
   shipped: "text-blue-400",
   out_for_delivery: "text-orange-400",
   delivered: "text-green-400",
+  cancelled: "text-red-400",
   not_found: "text-red-400",
 };
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
+const STATUS_LABELS: Record<string, string> = {
   processing: "Processing",
   shipped: "Shipped",
   out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
+  cancelled: "Cancelled",
   not_found: "Not Found",
 };
 
-const STATUS_ICONS: Record<OrderStatus, React.ReactNode> = {
+const STATUS_ICONS: Record<string, React.ReactNode> = {
   processing: <Clock className="w-5 h-5" />,
   shipped: <Truck className="w-5 h-5" />,
   out_for_delivery: <Truck className="w-5 h-5" />,
   delivered: <CheckCircle className="w-5 h-5" />,
+  cancelled: <AlertCircle className="w-5 h-5" />,
   not_found: <AlertCircle className="w-5 h-5" />,
 };
 
 export default function Track() {
   const [form, setForm] = useState({ email: "", orderNumber: "" });
-  const [result, setResult] = useState<null | { status: OrderStatus; item?: string; steps?: TrackingStep[] }>(null);
   const [searched, setSearched] = useState(false);
+  const [lookupOrder, setLookupOrder] = useState<string>("");
+
+  const orderQuery = useGetOrder(lookupOrder, {
+    query: { enabled: !!lookupOrder, retry: false, queryKey: ["order", lookupOrder] },
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const order = DEMO_ORDERS[form.orderNumber.toUpperCase().trim()];
-    if (order) {
-      setResult(order);
-    } else {
-      setResult({ status: "not_found" });
-    }
     setSearched(true);
+    setLookupOrder(form.orderNumber.toUpperCase().trim());
   };
 
   const handleReset = () => {
-    setResult(null);
     setSearched(false);
+    setLookupOrder("");
     setForm({ email: "", orderNumber: "" });
   };
+
+  const isNotFound = searched && !orderQuery.isLoading && orderQuery.isError;
+  const result = orderQuery.data;
+  const steps = result?.timeline as TrackingStep[] | undefined;
+  const status = result?.status as OrderStatus | undefined;
 
   return (
     <Layout>
@@ -123,17 +106,18 @@ export default function Track() {
             </div>
             <button
               type="submit"
+              disabled={orderQuery.isLoading}
               className="w-full h-14 bg-primary text-primary-foreground font-mono text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 mt-1"
             >
               <Search className="w-4 h-4" />
-              Track My Order
+              {orderQuery.isLoading ? "Loading..." : "Track My Order"}
             </button>
 
             <p className="font-mono text-xs text-muted-foreground text-center uppercase tracking-wider">
               Order number is in your confirmation email &mdash; starts with IMP-
             </p>
           </form>
-        ) : result?.status === "not_found" ? (
+        ) : isNotFound ? (
           <div className="border border-border bg-card p-8 text-center">
             <AlertCircle className="w-10 h-10 mx-auto mb-4 text-red-400" />
             <h2 className="font-serif text-2xl font-bold mb-2">Order Not Found</h2>
@@ -156,15 +140,23 @@ export default function Track() {
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-1">Order</p>
-                  <p className="font-mono text-sm font-bold">{form.orderNumber.toUpperCase()}</p>
+                  <p className="font-mono text-sm font-bold">{result.orderNumber}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-1">Item</p>
-                  <p className="font-mono text-sm">{result.item}</p>
+                  <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-1">Total</p>
+                  <p className="font-mono text-sm">{result.currency} {result.totalAmount}</p>
                 </div>
                 <div className={`flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-widest ${STATUS_COLORS[result.status]}`}>
                   {STATUS_ICONS[result.status]}
                   {STATUS_LABELS[result.status]}
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-1">Items</p>
+                <div className="space-y-1">
+                  {(result.items as Array<{ name: string; variant: string; quantity: number }>)?.map((item, i) => (
+                    <p key={i} className="font-mono text-sm">{item.name} — {item.variant} x{item.quantity}</p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -172,7 +164,7 @@ export default function Track() {
             <div className="border border-border bg-card p-6">
               <h2 className="font-serif text-xl font-bold mb-8 uppercase">Delivery Timeline</h2>
               <div className="relative flex flex-col gap-0">
-                {result.steps?.map((step, i) => (
+                {steps?.map((step, i) => (
                   <div key={i} className="flex gap-4">
                     <div className="flex flex-col items-center">
                       <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center border-2 transition-colors ${
@@ -188,11 +180,11 @@ export default function Track() {
                           <span className="w-2 h-2 rounded-full bg-border" />
                         )}
                       </div>
-                      {i < (result.steps?.length ?? 0) - 1 && (
+                      {i < (steps?.length ?? 0) - 1 && (
                         <div className={`w-0.5 flex-1 my-1 min-h-[2rem] ${step.done ? "bg-muted-foreground/50" : "bg-border"}`} />
                       )}
                     </div>
-                    <div className={`pb-8 ${i === (result.steps?.length ?? 0) - 1 ? "pb-0" : ""}`}>
+                    <div className={`pb-8 ${i === (steps?.length ?? 0) - 1 ? "pb-0" : ""}`}>
                       <div className="flex items-baseline gap-3 flex-wrap">
                         <p className={`font-mono text-sm font-bold uppercase tracking-wider ${step.active ? "text-primary" : step.done ? "text-foreground" : "text-muted-foreground"}`}>
                           {step.label}
