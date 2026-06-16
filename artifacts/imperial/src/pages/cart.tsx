@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout";
-import { useCart } from "@/hooks/use-cart";
+import { useLocalCart } from "@/hooks/use-local-cart";
 import { useAuth } from "@/contexts/auth-context";
 import { useCreateOrder } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
-  const { cart, isLoading, updateQuantity } = useCart();
+  const { cart, isLoading, updateQuantity, clearCart } = useLocalCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const createOrder = useCreateOrder();
@@ -28,10 +28,10 @@ export default function Cart() {
     setCheckoutLoading(true);
     try {
       const items = cart.lines.map((line) => ({
-        name: line.merchandise.product.title,
-        variant: line.merchandise.title,
+        name: line.productTitle,
+        variant: line.variantTitle,
         quantity: line.quantity,
-        price: parseFloat(line.merchandise.product.priceRange.minVariantPrice.amount),
+        price: line.price,
       }));
       const total = parseFloat(cart.cost.totalAmount.amount);
       const result = await createOrder.mutateAsync({
@@ -46,6 +46,7 @@ export default function Cart() {
       });
       setOrderPlaced({ orderNumber: result.orderNumber });
       localStorage.setItem("last_order_number", result.orderNumber);
+      clearCart();
     } catch (err: any) {
       toast({
         title: "Checkout failed",
@@ -57,7 +58,7 @@ export default function Cart() {
     }
   };
 
-  if (isLoading && !cart) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-24">
@@ -122,13 +123,13 @@ export default function Cart() {
               </div>
               
               {cart.lines.map((line) => (
-                <div key={line.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center py-6 border-b border-border">
+                <div key={line.variantId} className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center py-6 border-b border-border">
                   <div className="col-span-1 md:col-span-6 flex gap-6">
-                    <Link href={`/products/${line.merchandise.product.handle}`} className="shrink-0 w-24 h-32 bg-muted overflow-hidden border border-border">
-                      {line.merchandise.image ? (
-                        <img 
-                          src={line.merchandise.image.url} 
-                          alt={line.merchandise.product.title}
+                    <Link href={`/products/${line.productHandle}`} className="shrink-0 w-24 h-32 bg-muted overflow-hidden border border-border">
+                      {line.imageUrl ? (
+                        <img
+                          src={line.imageUrl}
+                          alt={line.productTitle}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -136,30 +137,28 @@ export default function Cart() {
                       )}
                     </Link>
                     <div className="flex flex-col justify-center">
-                      <Link href={`/products/${line.merchandise.product.handle}`} className="font-serif text-lg font-bold uppercase hover:text-primary transition-colors">
-                        {line.merchandise.product.title}
+                      <Link href={`/products/${line.productHandle}`} className="font-serif text-lg font-bold uppercase hover:text-primary transition-colors">
+                        {line.productTitle}
                       </Link>
                       <div className="mt-2 text-xs font-mono text-muted-foreground uppercase tracking-widest space-y-1">
-                        {line.merchandise.selectedOptions.map(opt => (
-                          <div key={opt.name}>{opt.name}: {opt.value}</div>
-                        ))}
+                        <div>{line.variantTitle}</div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="col-span-1 md:col-span-3 flex justify-between md:justify-center items-center">
                     <span className="md:hidden font-mono text-xs uppercase tracking-widest text-muted-foreground">Quantity</span>
                     <div className="flex items-center border border-border">
-                      <button 
-                        onClick={() => updateQuantity(line.id, line.quantity - 1)}
+                      <button
+                        onClick={() => updateQuantity(line.variantId, line.quantity - 1)}
                         className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
                         disabled={isLoading}
                       >
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-12 text-center font-mono text-sm">{line.quantity}</span>
-                      <button 
-                        onClick={() => updateQuantity(line.id, line.quantity + 1)}
+                      <button
+                        onClick={() => updateQuantity(line.variantId, line.quantity + 1)}
                         className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
                         disabled={isLoading}
                       >
@@ -167,13 +166,13 @@ export default function Cart() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="col-span-1 md:col-span-3 flex justify-between md:justify-end items-center font-mono text-sm">
                     <span className="md:hidden font-mono text-xs uppercase tracking-widest text-muted-foreground">Total</span>
                     <div className="flex items-center gap-4">
-                      <span>{line.cost.totalAmount.currencyCode} {line.cost.totalAmount.amount}</span>
-                      <button 
-                        onClick={() => updateQuantity(line.id, 0)}
+                      <span>{line.currencyCode} {(line.price * line.quantity).toFixed(2)}</span>
+                      <button
+                        onClick={() => updateQuantity(line.variantId, 0)}
                         className="text-muted-foreground hover:text-destructive transition-colors ml-4"
                         disabled={isLoading}
                       >

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useCart } from "@/hooks/use-cart";
+import { useLocalCart } from "@/hooks/use-local-cart";
 import { useAuth } from "@/contexts/auth-context";
 import { ShoppingBag, User, LogOut } from "lucide-react";
 import logo from "@assets/logo_1781537346154.jpg";
@@ -8,7 +8,7 @@ import { AuthModal } from "@/components/auth-modal";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { cart } = useCart();
+  const { cart } = useLocalCart();
   const { user, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <div className="hidden md:flex items-center gap-3">
                 <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  {user.name}
+                  Welcome: <span className="text-foreground font-bold">{user.name}</span>
                 </span>
                 <button
                   onClick={logout}

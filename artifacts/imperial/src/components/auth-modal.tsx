@@ -75,7 +75,8 @@ export function AuthModal({ onClose }: AuthModalProps) {
                     <input
                       required
                       type="text"
-                      placeholder="Full name"
+                      minLength={6}
+                      placeholder="Full name (min 6 chars)"
                       value={form.name}
                       onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                       className="w-full bg-card border border-border pl-11 pr-4 py-3 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
@@ -117,10 +118,10 @@ export function AuthModal({ onClose }: AuthModalProps) {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (mode === "register" && form.name.length < 6)}
                   className="w-full h-12 bg-primary text-primary-foreground font-mono text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors mt-1 disabled:opacity-50"
                 >
-                  {loading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
+                  {loading ? "Loading..." : mode === "login" ? "Sign In" : form.name.length < 6 ? "Name needs 6+ chars" : "Create Account"}
                 </button>
               </form>
 

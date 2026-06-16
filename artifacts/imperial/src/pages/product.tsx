@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useGetProduct } from "@workspace/api-client-react";
-import { useCart } from "@/hooks/use-cart";
+import { useLocalCart } from "@/hooks/use-local-cart";
 import { useParams } from "wouter";
 import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,7 @@ export default function Product() {
     query: { enabled: !!handle, retry: false, queryKey: ["product", handle] }
   });
   
-  const { addToCart, isLoading: isCartLoading } = useCart();
+  const { addToCart, isLoading: isCartLoading } = useLocalCart();
   
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [activeImage, setActiveImage] = useState(0);
@@ -177,12 +177,12 @@ export default function Product() {
             </div>
 
             <div className="mt-12">
-              <Button 
+              <Button
                 onClick={handleAddToCart}
-                disabled={!currentVariant?.availableForSale || isCartLoading}
+                disabled={isCartLoading}
                 className="w-full h-16 rounded-none font-mono text-sm uppercase tracking-widest font-bold bg-primary hover:bg-primary/90 text-primary-foreground disabled:bg-muted disabled:text-muted-foreground"
               >
-                {isCartLoading ? "Adding..." : currentVariant?.availableForSale ? "Add to Cart" : "Sold Out"}
+                {isCartLoading ? "Adding..." : "Add to Cart"}
               </Button>
             </div>
             
